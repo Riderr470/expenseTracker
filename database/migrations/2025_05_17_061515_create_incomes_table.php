@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->index();
             $table->decimal('amount', 10, 2);
-            $table->date('date');
             $table->timestamps();
         });
     }

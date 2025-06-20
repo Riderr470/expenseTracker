@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('expanses', function (Blueprint $table) {
+        Schema::create('expenses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->index();
             $table->foreignId('category_id')->index();
+            $table->string('name')->nullable();
             $table->decimal('amount', 10, 2);
-            $table->text('short_description');
-            $table->date('date');
+            $table->text('short_description')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expanses');
+        Schema::dropIfExists('expenses');
     }
 };
