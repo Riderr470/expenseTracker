@@ -4,9 +4,14 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
 import { ref, computed } from 'vue';
 
-const props = defineProps({
-    data: Array
-});
+const props = defineProps<{
+    data: {
+        expenses: any[];
+        daily_total_expense: number;
+        weekly_total_expense: number;
+        monthly_total_expense: number;
+    };
+}>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -25,14 +30,31 @@ const calculatedTotal = computed(() => {
     return (form.cost * form.qty).toFixed(2);
 });
 
+const groupedByDate = computed(() => {
+    const groups: Record<string, { items: any[]; total: number }> = {};
+
+    for (const item of props.data.expenses) {
+        const date = new Date(item.created_at).toLocaleDateString();
+
+        if (!groups[date]) {
+            groups[date] = { items: [], total: 0 };
+        }
+
+        groups[date].items.push(item);
+        groups[date].total += parseFloat(item.cost);
+    }
+
+    return groups;
+});
+
 function formatDate(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleDateString();
 }
 
 // Static amounts for now
-const income = 100;
-const expense = 0;
+const income = 0;
+const expense = props.data.daily_total_expense ?? 0;
 const remaining = income - expense;
 </script>
 
@@ -48,12 +70,14 @@ const remaining = income - expense;
 
                     <!-- Income Card -->
                     <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
-                        <p class="font-semibold">Income: ${{ income }}</p>
+                        <p class="font-semibold">This Week Expenses: ${{ props.data.weekly_total_expense ?? 'error' }}
+                        </p>
                     </div>
 
                     <!-- Remaining Card -->
-                    <div class="rounded-md bg-blue-100 text-blue-800 px-5 py-2 shadow border border-blue-300">
-                        <p class="font-semibold">Remaining: ${{ remaining }}</p>
+                    <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
+                        <p class="font-semibold">This Month Expenses: ${{ props.data.monthly_total_expense ?? 'error' }}
+                        </p>
                     </div>
 
                 </div>
@@ -62,7 +86,9 @@ const remaining = income - expense;
             <!-- Section Bar -->
             <div
                 class="rounded-xl border border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 p-6 text-end pr-20">
-                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Expense : ${{ expense }}</h2>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    Today Total Expense : ${{ props.data.daily_total_expense ?? 0 }}
+                </h2>
             </div>
 
             <div class="rounded-md border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800 dark:border-gray-600">
@@ -103,7 +129,7 @@ const remaining = income - expense;
 
                     <div class="w-full sm:w-2/12">
                         <button type="submit"
-                            class="w-full rounded-md bg-blue-600 px-5 py-2 text-white text-sm font-semibold hover:bg-blue-700"
+                            class="w-full rounded-md bg-green-600 px-5 py-2 text-white text-sm font-semibold hover:bg-green-700"
                             :disabled="form.processing">
                             Add
                         </button>
@@ -117,20 +143,35 @@ const remaining = income - expense;
                     <thead class="bg-gray-100 dark:bg-gray-800">
                         <tr>
                             <th class="px-4 py-3 border-b font-semibold">Good</th>
-                            <th class="px-4 py-3 border-b font-semibold">Cost</th>
-                            <th class="px-4 py-3 border-b font-semibold">Date</th>
-                            <!-- <th class="px-4 py-3 border-b font-semibold">Action</th> -->
+                            <th class="px-4 py-3 border-b font-semibold">Qty</th>
+                            <th class="px-4 py-3 border-b font-semibold text-right">Cost</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, index) in props.data" :key="item.id">
-                            <td class="px-4 py-2">{{ item.name ?? 'Nameless item' }}</td>
-                            <td class="px-4 py-2">${{ item.cost }}</td>
-                            <td class="px-4 py-2">{{ formatDate(item.created_at) }}</td>
-                        </tr>
+                        <template v-for="(group, date) in groupedByDate" :key="date">
+                            <!-- Date header row -->
+                            <tr class="bg-green-100 dark:bg-green-800">
+                                <td colspan="3" class="px-4 py-2 font-bold text-green-900 dark:text-white">
+                                    Date : {{ date }}
+                                </td>
+                            </tr>
 
+                            <!-- Items of the day -->
+                            <tr v-for="item in group.items" :key="item.id">
+                                <td class="px-4 py-2">{{ item.name ?? 'Nameless item' }}</td>
+                                <td class="px-4 py-2">{{ item.qty ?? 1 }}</td>
+                                <td class="px-4 py-2 text-right">${{ item.cost }}</td>
+                            </tr>
+
+                            <!-- Daily total row -->
+                            <tr class="bg-gray-100 dark:bg-gray-700 border-t">
+                                <td class="px-4 py-2 text-right font-semibold" colspan="2">Daily Total:</td>
+                                <td class="px-4 py-2 font-bold text-right">${{ group.total.toFixed(2) }}</td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
+
             </div>
 
         </div>
