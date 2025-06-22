@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->index();
-            $table->foreignId('category_id')->index();
+            $table->foreignId('category_id')->index()->nullable();
             $table->string('name')->nullable();
-            $table->decimal('amount', 10, 2);
+            $table->decimal('cost', 10, 2);
+            $table->integer('qty')->default(1);
+            $table->decimal('total', 10, 2)->nullable();
             $table->text('short_description')->nullable();
             $table->timestamps();
         });
