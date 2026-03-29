@@ -52,7 +52,6 @@ function formatDate(dateStr: string): string {
     return date.toLocaleDateString();
 }
 
-// Static amounts for now
 const income = 0;
 const expense = props.data.daily_total_expense ?? 0;
 const remaining = income - expense;
