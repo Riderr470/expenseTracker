@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('expense')->group(function () {
         Route::get('/', [ExpenseController::class, 'index'])->name('expense');
         ROute::post('/add', [ExpenseController::class, 'addExpense'])->name('expense.add');
+        Route::delete('/{expense}', [ExpenseController::class, 'destroy']);
     });
 });
 

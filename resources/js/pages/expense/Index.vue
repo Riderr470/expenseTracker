@@ -41,7 +41,7 @@ const groupedByDate = computed(() => {
         }
 
         groups[date].items.push(item);
-        groups[date].total += parseFloat(item.cost);
+        groups[date].total += parseFloat(item.cost) * (item.qty ?? 1);
     }
 
     return groups;
@@ -55,6 +55,36 @@ function formatDate(dateStr: string): string {
 const income = 0;
 const expense = props.data.daily_total_expense ?? 0;
 const remaining = income - expense;
+
+const swipeStyles = ref<Record<number, string>>({});
+const touchStartX = ref<Record<number, number>>({});
+const touchDeltaX = ref<Record<number, number>>({});
+const SWIPE_THRESHOLD = 80;
+
+function deleteItem(id: number) {
+    useForm({}).delete(`/expense/${id}`);
+}
+
+function onTouchStart(e: TouchEvent, id: number) {
+    touchStartX.value[id] = e.touches[0].clientX;
+    touchDeltaX.value[id] = 0;
+}
+
+function onTouchMove(e: TouchEvent, id: number) {
+    const delta = e.touches[0].clientX - touchStartX.value[id];
+    touchDeltaX.value[id] = delta;
+    swipeStyles.value[id] = `transform: translateX(${delta}px); transition: none; opacity: ${1 - Math.abs(delta) / 160};`;
+}
+
+function onTouchEnd(e: TouchEvent, id: number) {
+    const delta = touchDeltaX.value[id] ?? 0;
+    if (Math.abs(delta) >= SWIPE_THRESHOLD) {
+        swipeStyles.value[id] = `transform: translateX(${delta > 0 ? '100%' : '-100%'}); transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0;`;
+        setTimeout(() => deleteItem(id), 200);
+    } else {
+        swipeStyles.value[id] = `transform: translateX(0); transition: transform 0.3s ease, opacity 0.3s ease; opacity: 1;`;
+    }
+}
 </script>
 
 <template>
@@ -144,28 +174,44 @@ const remaining = income - expense;
                             <th class="px-4 py-3 border-b font-semibold">Good</th>
                             <th class="px-4 py-3 border-b font-semibold">Qty</th>
                             <th class="px-4 py-3 border-b font-semibold text-right">Cost</th>
+                            <th class="px-4 py-3 border-b font-semibold text-right">Total</th>
+                            <th class="w-8"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <template v-for="(group, date) in groupedByDate" :key="date">
                             <!-- Date header row -->
                             <tr class="bg-green-100 dark:bg-green-800">
-                                <td colspan="3" class="px-4 py-2 font-bold text-green-900 dark:text-white">
+                                <td colspan="5" class="px-4 py-2 font-bold text-green-900 dark:text-white">
                                     Date : {{ date }}
                                 </td>
                             </tr>
 
                             <!-- Items of the day -->
-                            <tr v-for="item in group.items" :key="item.id">
+                            <tr v-for="item in group.items" :key="item.id" class="group relative" :data-id="item.id"
+                                @touchstart="onTouchStart($event, item.id)" @touchmove="onTouchMove($event, item.id)"
+                                @touchend="onTouchEnd($event, item.id)" :style="swipeStyles[item.id]">
                                 <td class="px-4 py-2">{{ item.name ?? 'Nameless item' }}</td>
                                 <td class="px-4 py-2">{{ item.qty ?? 1 }}</td>
                                 <td class="px-4 py-2 text-right">${{ item.cost }}</td>
+                                <td class="px-4 py-2 text-right">${{ (item.cost * item.qty).toFixed(2) }}</td>
+                                <td class="px-4 py-2 w-8 text-right">
+                                    <button @click="deleteItem(item.id)" aria-label="Delete expense"
+                                        class="hidden sm:inline-flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1 rounded">
+                                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                                            <path d="M3 3.5h9M6 3.5V2h3v1.5M5.5 6v5M9.5 6v5M4 3.5l.5 9h6l.5-9"
+                                                stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                                stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </td>
                             </tr>
 
                             <!-- Daily total row -->
                             <tr class="bg-gray-100 dark:bg-gray-700 border-t">
-                                <td class="px-4 py-2 text-right font-semibold" colspan="2">Daily Total:</td>
+                                <td class="px-4 py-2 text-right font-semibold" colspan="3">Daily Total:</td>
                                 <td class="px-4 py-2 font-bold text-right">${{ group.total.toFixed(2) }}</td>
+                                <td class="w-8"></td>
                             </tr>
                         </template>
                     </tbody>

@@ -20,17 +20,17 @@ class ExpenseController extends Controller
 
         $dailyTotalExpense = (clone $query)
             ->whereDate('created_at', Carbon::today())
-            ->sum('cost');
+            ->sum('total');
 
         // Weekly total expense (from Monday to Sunday)
         $weeklyTotalExpense = (clone $query)
             ->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
-            ->sum('cost');
+            ->sum('total');
 
         // Monthly total expense (current month)
         $monthlyTotalExpense = (clone $query)
             ->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
-            ->sum('cost');
+            ->sum('total');
 
         $data = [
             'expenses' => $expenses,
@@ -52,6 +52,7 @@ class ExpenseController extends Controller
         $cost = $request->cost;
         $qty = $request->qty;
 
+
         $data = Expense::create([
             'name' => $request->name,
             'user_id' => auth()->user()->id,
@@ -62,5 +63,23 @@ class ExpenseController extends Controller
         // dd($data);
         Toastr::success('Expense added successfully');
         return redirect('expense');
+    }
+
+    public function destroy(Expense $expense)
+    {
+        // for use policies
+        // $this->authorize('delete', $expense); 
+        if ($expense->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        try {
+            $expense->delete();
+            Toastr::success('Expense deleted successfully');
+        } catch (\Exception $e) {
+            Toastr::error('Failed to delete expense');
+        }
+
+        return back();
     }
 }
