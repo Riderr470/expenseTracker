@@ -142,7 +142,7 @@ function onTouchEnd(e: TouchEvent, id: number) {
 
                     <div class="flex flex-col gap-1 w-full sm:w-1/12">
                         <label class="text-sm font-medium">Quantity</label>
-                        <input type="number" v-model.number="form.qty"
+                        <input type="number" v-model.number="form.qty" min="1"
                             class="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                             placeholder="e.g. 1" />
                         <div v-if="form.errors.qty" class="text-red-500 text-xs">{{ form.errors.qty }}</div>

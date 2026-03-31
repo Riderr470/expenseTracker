@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\Admin\ExpenseController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
