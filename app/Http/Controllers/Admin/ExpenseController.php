@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Expense;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ExpenseRequest;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,9 +16,11 @@ class ExpenseController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $expenses = Expense::where('user_id', $user->id)->orderBy('id', 'desc')->get();
-
         $query = Expense::where('user_id', $user->id);
+
+        $expenses = (clone $query)
+            ->orderBy('id', 'desc')
+            ->get();
 
         $dailyTotalExpense = (clone $query)
             ->whereDate('created_at', Carbon::today())
@@ -43,13 +46,8 @@ class ExpenseController extends Controller
         return Inertia::render('expense/Index', ['data' => $data]);
     }
 
-    public function addExpense(Request $request)
+    public function addExpense(ExpenseRequest $request)
     {
-        $request->validate([
-            'name' => 'nullable|string|max:255',
-            'cost' => 'required',
-        ]);
-
         $cost = $request->cost;
         $qty = $request->qty;
 
