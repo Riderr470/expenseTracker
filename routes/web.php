@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,6 +13,9 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    //dashboard settings
+    Route::resource('dashboard/widgets', SettingsController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // Add more routes here that need the same middleware
     // Route::get('/profile', function () {

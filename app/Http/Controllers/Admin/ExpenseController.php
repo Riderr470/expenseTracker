@@ -16,7 +16,7 @@ class ExpenseController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $query = Expense::where('user_id', $user->id);
+        $query = $user->expenses();
 
         $expenses = (clone $query)
             ->orderBy('id', 'desc')
