@@ -3,6 +3,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
 import { ref, computed } from 'vue';
+import { useCurrency } from '@/composables/useCurrency'
+
+const { currency, format } = useCurrency()
 
 const props = defineProps<{
     data: {
@@ -99,13 +102,13 @@ function onTouchEnd(e: TouchEvent, id: number) {
 
                     <!-- Income Card -->
                     <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
-                        <p class="font-semibold">This Week Expenses: ${{ props.data.weekly_total_expense ?? 'error' }}
+                        <p class="font-semibold">This Week Expenses: {{format(props.data.weekly_total_expense) ?? 'error' }}
                         </p>
                     </div>
 
                     <!-- Remaining Card -->
                     <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
-                        <p class="font-semibold">This Month Expenses: ${{ props.data.monthly_total_expense ?? 'error' }}
+                        <p class="font-semibold">This Month Expenses: {{ format(props.data.monthly_total_expense) ?? 'error' }}
                         </p>
                     </div>
 
@@ -116,7 +119,7 @@ function onTouchEnd(e: TouchEvent, id: number) {
             <div
                 class="rounded-xl border border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 p-6 text-end pr-20">
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    Today Total Expense : ${{ props.data.daily_total_expense ?? 0 }}
+                    Today Total Expense : {{ format(props.data.daily_total_expense ?? 0) }}
                 </h2>
             </div>
 
@@ -193,8 +196,8 @@ function onTouchEnd(e: TouchEvent, id: number) {
                                 @touchend="onTouchEnd($event, item.id)" :style="swipeStyles[item.id]">
                                 <td class="px-4 py-2">{{ item.name ?? 'Nameless item' }}</td>
                                 <td class="px-4 py-2">{{ item.qty ?? 1 }}</td>
-                                <td class="px-4 py-2 text-right">${{ item.cost }}</td>
-                                <td class="px-4 py-2 text-right">${{ (item.cost * item.qty).toFixed(2) }}</td>
+                                <td class="px-4 py-2 text-right">{{ format(item.cost) }}</td>
+                                <td class="px-4 py-2 text-right">{{ format(item.cost * item.qty) }}</td>
                                 <td class="px-4 py-2 w-8 text-right">
                                     <button @click="deleteItem(item.id)" aria-label="Delete expense"
                                         class="hidden sm:inline-flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1 rounded">
@@ -210,7 +213,7 @@ function onTouchEnd(e: TouchEvent, id: number) {
                             <!-- Daily total row -->
                             <tr class="bg-gray-100 dark:bg-gray-700 border-t">
                                 <td class="px-4 py-2 text-right font-semibold" colspan="3">Daily Total:</td>
-                                <td class="px-4 py-2 font-bold text-right">${{ group.total.toFixed(2) }}</td>
+                                <td class="px-4 py-2 font-bold text-right">{{ format(group.total) }}</td>
                                 <td class="w-8"></td>
                             </tr>
                         </template>

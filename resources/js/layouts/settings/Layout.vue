@@ -22,6 +22,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/settings/dashboard',
     },
+    {
+        title: 'Currency',
+        href: '/settings/currency',
+    },
 ];
 
 const page = usePage();

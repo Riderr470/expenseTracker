@@ -3,6 +3,7 @@
 use App\Http\Controllers\Settings\DashboardSettingController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SettingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -27,5 +28,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('dashboard/widgets/{widget}', [DashboardSettingController::class, 'update'])->name('dashboard.widgets.update');
         Route::delete('dashboard/widgets/{widget}', [DashboardSettingController::class, 'destroy'])->name('dashboard.widgets.destroy');
         Route::post('dashboard/widgets/reorder', [DashboardSettingController::class, 'reorder'])->name('dashboard.widgets.reorder');
+
+        Route::get('/currency', [SettingController::class, 'index'])
+            ->name('currency');
+
+        // Handles the form submission to save the currency
+        Route::post('/currency', [SettingController::class, 'updateCurrency'])
+            ->name('currency.update');
     });
 });

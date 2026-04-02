@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Currency;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -37,20 +38,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+       return array_merge(parent::share($request), [
+        'auth' => [
+            'user' => $request->user(),
+        ],
+        'currency' => function () use ($request) {
+            if (! $request->user()) {
+                return ['code' => 'BDT', 'symbol' => '৳'];
+            }
 
-        return [
-            ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'auth' => [
-                'user' => $request->user(),
-            ],
-            'ziggy' => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
-            ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-        ];
+            $setting = \App\Models\UserSetting::where('user_id', $request->user()->id)
+                ->where('name', 'currency')
+                ->first();
+
+            $code = $setting ? $setting->value['value'] ?? 'BDT' : 'BDT';
+            $enum = Currency::from($code);
+
+            return [
+                'code'   => $enum->value,
+                'symbol' => $enum->symbol(),
+                'label'  => $enum->label(),
+            ];
+        },
+    ]);
     }
 }

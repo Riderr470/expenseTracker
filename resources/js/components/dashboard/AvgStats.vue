@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useCurrency } from '@/composables/useCurrency';
+
 defineProps<{
     dailyAvgExpense: number;
     weeklyAvgExpense: number;
     monthlyAvgExpense: number;
 }>();
+
+const { format } = useCurrency();
 </script>
 
 <template>
@@ -18,7 +22,7 @@ defineProps<{
                 <span class="text-sm text-gray-500 dark:text-gray-400">Daily Average</span>
             </div>
             <span class="text-sm font-bold text-green-700 dark:text-green-500 tabular-nums">
-                ${{ (dailyAvgExpense ?? 0).toFixed(2) }}
+                {{ format(dailyAvgExpense ?? 0) }}
             </span>
         </div>
 
@@ -31,7 +35,7 @@ defineProps<{
                 <span class="text-sm text-gray-500 dark:text-gray-400">Weekly Average</span>
             </div>
             <span class="text-sm font-bold text-green-700 dark:text-green-500 tabular-nums">
-                ${{ (weeklyAvgExpense ?? 0).toFixed(2) }}
+                {{ format(weeklyAvgExpense ?? 0) }}
             </span>
         </div>
 
@@ -44,7 +48,7 @@ defineProps<{
                 <span class="text-sm text-gray-500 dark:text-gray-400">Monthly Average</span>
             </div>
             <span class="text-sm font-bold text-green-700 dark:text-green-500 tabular-nums">
-                ${{ (monthlyAvgExpense ?? 0).toFixed(2) }}
+                {{ format(monthlyAvgExpense ?? 0) }}
             </span>
         </div>
 
