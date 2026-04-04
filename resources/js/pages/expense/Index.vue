@@ -62,7 +62,7 @@ const remaining = income - expense;
 const swipeStyles = ref<Record<number, string>>({});
 const touchStartX = ref<Record<number, number>>({});
 const touchDeltaX = ref<Record<number, number>>({});
-const SWIPE_THRESHOLD = 80;
+const SWIPE_THRESHOLD = typeof window !== 'undefined' ? window.innerWidth * 0.7 : 200;
 
 function deleteItem(id: number) {
     useForm({}).delete(`/expense/${id}`);
@@ -82,11 +82,36 @@ function onTouchMove(e: TouchEvent, id: number) {
 function onTouchEnd(e: TouchEvent, id: number) {
     const delta = touchDeltaX.value[id] ?? 0;
     if (Math.abs(delta) >= SWIPE_THRESHOLD) {
-        swipeStyles.value[id] = `transform: translateX(${delta > 0 ? '100%' : '-100%'}); transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0;`;
-        setTimeout(() => deleteItem(id), 200);
+        swipeStyles.value[id] = `transform: translateX(${delta > 0 ? '60%' : '-60%'}); transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0.3;`;
+        setTimeout(() => requestDelete(id), 200);  // <-- changed from deleteItem to requestDelete
     } else {
         swipeStyles.value[id] = `transform: translateX(0); transition: transform 0.3s ease, opacity 0.3s ease; opacity: 1;`;
     }
+}
+
+const showConfirm = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+function requestDelete(id: number) {
+    pendingDeleteId.value = id;
+    showConfirm.value = true;
+}
+
+function confirmDelete() {
+    if (pendingDeleteId.value !== null) {
+        deleteItem(pendingDeleteId.value);
+    }
+    showConfirm.value = false;
+    pendingDeleteId.value = null;
+}
+
+function cancelDelete() {
+    // snap swipe back if triggered from mobile
+    if (pendingDeleteId.value !== null) {
+        swipeStyles.value[pendingDeleteId.value] = `transform: translateX(0); transition: transform 0.3s ease, opacity 0.3s ease; opacity: 1;`;
+    }
+    showConfirm.value = false;
+    pendingDeleteId.value = null;
 }
 </script>
 
@@ -102,13 +127,15 @@ function onTouchEnd(e: TouchEvent, id: number) {
 
                     <!-- Income Card -->
                     <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
-                        <p class="font-semibold">This Week Expenses: {{format(props.data.weekly_total_expense) ?? 'error' }}
+                        <p class="font-semibold">This Week Expenses: {{ format(props.data.weekly_total_expense) ??
+                            'error' }}
                         </p>
                     </div>
 
                     <!-- Remaining Card -->
                     <div class="rounded-md bg-green-100 text-green-800 px-5 py-2 shadow border border-green-300">
-                        <p class="font-semibold">This Month Expenses: {{ format(props.data.monthly_total_expense) ?? 'error' }}
+                        <p class="font-semibold">This Month Expenses: {{ format(props.data.monthly_total_expense) ??
+                            'error' }}
                         </p>
                     </div>
 
@@ -199,7 +226,7 @@ function onTouchEnd(e: TouchEvent, id: number) {
                                 <td class="px-4 py-2 text-right">{{ format(item.cost) }}</td>
                                 <td class="px-4 py-2 text-right">{{ format(item.cost * item.qty) }}</td>
                                 <td class="px-4 py-2 w-8 text-right">
-                                    <button @click="deleteItem(item.id)" aria-label="Delete expense"
+                                    <button @click="requestDelete(item.id)" aria-label="Delete expense"
                                         class="hidden sm:inline-flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 p-1 rounded">
                                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
                                             <path d="M3 3.5h9M6 3.5V2h3v1.5M5.5 6v5M9.5 6v5M4 3.5l.5 9h6l.5-9"
@@ -223,6 +250,43 @@ function onTouchEnd(e: TouchEvent, id: number) {
             </div>
 
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <Transition name="fade">
+            <div v-if="showConfirm"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+                @click.self="cancelDelete">
+                <div
+                    class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl w-full max-w-sm p-6">
+
+                    <div class="flex items-center gap-3 mb-3">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="text-red-500 shrink-0"
+                            aria-hidden="true">
+                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M10 6v4M10 13.5v.5" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg>
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Delete this expense?</h3>
+                    </div>
+
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
+                        This action cannot be undone. The expense entry will be permanently removed.
+                    </p>
+
+                    <div class="flex gap-2 justify-end">
+                        <button @click="cancelDelete"
+                            class="px-4 py-2 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="confirmDelete"
+                            class="px-4 py-2 rounded-md text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors">
+                            Yes, delete
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </Transition>
     </AppLayout>
 </template>
 
@@ -248,5 +312,10 @@ function onTouchEnd(e: TouchEvent, id: number) {
     margin-right: 0;
 }
 
-/* No total-width-slide-enter-to needed if default state is desired final state */
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+}
 </style>

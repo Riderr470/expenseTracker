@@ -4,49 +4,49 @@ namespace App;
 
 enum Currency: string
 {
-    case USD = 'USD';
+    case AUD = 'AUD';
+    case BDT = 'BDT';
+    case CAD = 'CAD';
+    case CNY = 'CNY';
     case EUR = 'EUR';
     case GBP = 'GBP';
-    case SGD = 'SGD';
-    case JPY = 'JPY';
-    case AUD = 'AUD';
-    case CAD = 'CAD';
-    case MYR = 'MYR';
     case INR = 'INR';
-    case CNY = 'CNY';
-    case BDT = 'BDT';
+    case JPY = 'JPY';
+    case MYR = 'MYR';
+    case SGD = 'SGD';
+    case USD = 'USD';
 
     public function symbol(): string
     {
         return match($this) {
-            self::USD => '$',
+            self::AUD => 'A$',
+            self::BDT => '৳',
+            self::CAD => 'C$',
+            self::CNY => '¥',
             self::EUR => '€',
             self::GBP => '£',
-            self::SGD => 'S$',
-            self::JPY => '¥',
-            self::AUD => 'A$',
-            self::CAD => 'C$',
-            self::MYR => 'RM',
             self::INR => '₹',
-            self::CNY => '¥',
-            self::BDT => '৳',
+            self::JPY => '¥',
+            self::MYR => 'RM',
+            self::SGD => 'S$',
+            self::USD => '$',
         };
     }
 
     public function label(): string
     {
         return match($this) {
-            self::USD => 'US Dollar',
+            self::AUD => 'Australian Dollar',
+            self::BDT => 'Bangladeshi Taka',
+            self::CAD => 'Canadian Dollar',
+            self::CNY => 'Chinese Yuan',
             self::EUR => 'Euro',
             self::GBP => 'British Pound',
-            self::SGD => 'Singapore Dollar',
-            self::JPY => 'Japanese Yen',
-            self::AUD => 'Australian Dollar',
-            self::CAD => 'Canadian Dollar',
-            self::MYR => 'Malaysian Ringgit',
             self::INR => 'Indian Rupee',
-            self::CNY => 'Chinese Yuan',
-            self::BDT => 'Bangladeshi Taka',
+            self::JPY => 'Japanese Yen',
+            self::MYR => 'Malaysian Ringgit',
+            self::SGD => 'Singapore Dollar',
+            self::USD => 'US Dollar',
         };
     }
 
